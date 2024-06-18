@@ -1,0 +1,1211 @@
+---
+title: "Moral Anger and Disgust: Recipient vs. Initiator Focus in Moral Transgressions"
+subtitle: "Eva Vives, Astrid Thébault Guiochon, Bastien Trémolière, Agnès Falco, Hakim Djeriouat </br><i>Study of Cognitive Mechanisms (EMC) Laboratory</i>"
+authors: 
+  - name: Astrid Thébault Guiochon
+    email: a.thebaultguiochon@univ-lyon2.fr
+    orcid: 0009-0007-8941-0143
+    url: https://emc.univ-lyon2.fr/equipes/neurocognition-criminalite-ncc/thebault-guiochon-astrid
+    affiliations:
+      - ref: emc
+  - name: Eva Vives
+    email: eva.vives@ugent.be
+    orcid: 0000-0002-8477-848X
+    url: https://evavives.github.io
+affiliations:
+  - id: emc
+    name: Study of Cognitive Mechanisms (EMC) Laboratory
+    url: https://emc.univ-lyon2.fr
+format: 
+  html:
+    theme:
+      minty
+    number-sections: true
+    number-depth: 3
+    toc: true
+    toc_float: true
+    embed-resources: true
+lightbox: true
+date-modified: last-modified
+date-format: long
+execute: 
+  message: false
+  warning: false
+bibliography: 
+  - "references/packages.bib"
+nocite: |
+  @*
+csl: 
+  "references/apa.csl"
+---
+
+# Loading
+
+## Librairies
+
+```{r}
+#| label: setup-dl
+#| code-summary: Downloading packages
+#| code-fold: true
+#| output: false 
+
+if (!require("aod")) 
+  install.packages("aod")
+if (!require("broom.mixed")) 
+  install.packages("broom.mixed")
+if (!require("car")) 
+  install.packages("car")
+if (!require("data.table")) 
+  install.packages("data.table")
+if (!require("dplyr")) 
+  install.packages("dplyr")
+if (!require("effects")) 
+  install.packages("effects")
+if (!require("emmeans")) 
+  install.packages("emmeans")
+if (!require("fitdistrplus")) 
+  install.packages("fitdistrplus")
+if (!require("ggeffects")) 
+  install.packages("ggeffects")
+if (!require("ggplot2")) 
+  install.packages("ggplot2")
+if (!require("ggpubr")) 
+  install.packages("ggpubr")
+if (!require("ggthemes")) 
+  install.packages("ggthemes")
+if (!require("gridExtra")) 
+  install.packages("gridExtra")
+if (!require("knitr")) 
+  install.packages("knitr")
+if (!require("labelled")) 
+  install.packages("labelled")
+if (!require("lme4")) 
+  install.packages("lme4")
+if (!require("lmerTest")) 
+  install.packages("lmerTest")
+if (!require("lmtest")) 
+  install.packages("lmtest")
+if (!require("magrittr")) 
+  install.packages("magrittr")
+if (!require("MuMIn")) 
+  install.packages("MuMIn")
+if (!require("nortest")) 
+  install.packages("nortest")
+if (!require("performance")) 
+  install.packages("performance")
+if (!require("plyr")) 
+  install.packages("plyr")
+if (!require("plotly")) 
+  install.packages("plotly")
+if (!require("readr")) 
+  install.packages("readr")
+if (!require("readxl")) 
+  install.packages("readxl")
+if (!require("sjPlot")) 
+  install.packages("sjPlot")
+if (!require("tidyr")) 
+  install.packages("tidyr")
+if (!require("tidyverse")) 
+  install.packages("tidyverse")
+if (!require("tinytex")) 
+  tinytex::install_tinytex()
+remotes::install_github("mattansb/ggggeffects")
+```
+
+```{r}
+#| label: setup-load
+#| code-summary: Loading packages
+#| output: false 
+
+library(aod)
+library(broom.mixed)
+library(car)
+library(data.table)
+library(dplyr)
+library(effects)
+library(emmeans)
+library(fitdistrplus)
+library(ggeffects)
+library(ggplot2)
+library(ggpubr)
+library(ggthemes)
+library(gridExtra)
+library(gtsummary)
+library(labelled)
+library(lme4)
+library(lmerTest)
+library(lmtest)
+library(magrittr)
+library(MuMIn)
+library(nortest)
+library(performance)
+library(plyr)
+library(plotly)
+library(readr)
+library(readxl)
+library(sjPlot)
+library(tidyr)
+source('./themes/ggplot_theme_Publication-2.R')
+```
+
+## References
+
+```{r}
+#| label: refs
+#| code-summary: "References"
+#| code-fold: true 
+#| output: false 
+
+knitr::write_bib(c(.packages()), 
+                 file = "references/packages.bib")
+```
+
+
+## Working directory
+
+⚠️ Adapt to your computer
+
+```{r directory, include = FALSE}
+# Eva
+# data = read.csv("~/Moralem/Study 1/Dataset_s1_final_221223.csv", sep = ";", header = T, dec = ".", na.strings = "NA")
+# data2 = read.csv("~/Moralem/Study 2/Dataset_s2_final_181223.csv", sep = ";", header = T, dec = ".", na.strings = "NA")
+```
+
+## Processing
+
+### Dataset
+
+💡 Opens an explorer window (or use file path)
+
+```{r data}
+# Dataset study 1
+data = read.csv("./dataset/Dataset_s1.csv", sep = ";", header = T, dec = ".", na.strings = "NA")
+#f = file.choose()
+#data = read.csv(f, sep = ";", header = T, dec = ".", na.strings = "NA")
+
+# Dataset study 2
+data2 = read.csv("./dataset/Dataset_s2.csv", sep = ";", header = T, dec = ".", na.strings = "NA")
+#f = file.choose()
+#data2 = read.csv(f, sep = ";", header = T, dec = ".", na.strings = "NA")
+#rm(f)
+```
+
+### Preparation
+
+```{r data-prep-labels}
+var_label(data) = list(condition = "Condition (Appraisal)",
+                       newemo = "Emotion",
+                       newclass = "Class of Transgression",
+                       age = "Age",
+                       newgender = "Sex",
+                       political_orientation = "Political Orientation (1-Liberal to 7-Conservative")
+
+data = 
+  data |>
+    mutate(newemo = factor(newemo, levels = c("colere", "degout", "peur", "tristesse", "neutre", "joie")),
+           across(c(condition, newgender, newclass, political_orientation), as.factor),
+           condition = recode_factor(condition, 
+                              Agresseur = "Perpetrator", 
+                              Victime = "Victim"),
+           newgender = recode_factor(newgender, 
+                              "0" = "Female", 
+                              "1" = "Male"),
+           newemo = recode_factor(newemo, 
+                           colere = "Anger", 
+                           degout = "Disgust", 
+                           peur = "Fear", 
+                           tristesse = "Sadness",
+                           neutre = "Neutral",
+                           joie = "Joy"),
+           newclass = recode_factor(newclass, 
+                             abandonment = "Abandonment", 
+                             betrayal = "Betrayal", 
+                             harm = "Harm",
+                             humiliation = "Humiliation", 
+                             injustice = "Injustice")) |>
+    rename(item = newslide)
+
+var_label(data2) = list(condition = "Condition (Appraisal)",
+                        newemo = "Emotion",
+                        newclass = "Class of Transgression",
+                        scenarios = "Scenario",
+                        age = "Age",
+                        newgender = "Sex",
+                        political_orientation = "Political Orientation (1-Liberal to 7-Conservative")
+
+data2 = 
+  data2 |>
+    mutate(newemo = factor(newemo, levels = c("colere", "degout", "neutre", "tristesse")),
+           across(c(condition, newgender, newclass, political_orientation), as.factor),
+           condition = recode_factor(condition, 
+                              Agresseur = "Perpetrator", 
+                              Victime = "Victim"),
+           newgender = recode_factor(newgender, 
+                              "0" = "Female", 
+                              "1" = "Male"),
+           newemo = recode_factor(newemo, 
+                           colere = "Anger", 
+                           degout = "Disgust", 
+                           tristesse = "Sadness",
+                           neutre = "Neutral"),
+           newclass = recode_factor(newclass, 
+                             harm = "Harm",
+                             humiliation = "Humiliation", 
+                             injustice = "Injustice",
+                             norm = "Control"),
+           scenarios = recode_factor(scenarios,
+                              moral = "Transgression",
+                              norm = "Control"))
+    #rename(item = newslide)
+```
+
+## Descriptive statistics
+
+### Demographics
+
+#### Study 1
+
+```{r demographics1}
+summary_data = data[,] %>%
+  select(prolific_ID, age, political_orientation, genre) %>%
+  group_by(prolific_ID) %>%
+  summarise(
+    age = first(age),
+    political_orientation = first(political_orientation),
+    genre = first(genre),
+    .groups = 'drop')
+
+summary(summary_data)
+count(summary_data$genre)
+```
+
+
+#### Study 2
+
+```{r demographics2}
+summary_data2 = data2[,] %>%
+  select(prolific_ID, age, political_orientation, genre) %>%
+  group_by(prolific_ID) %>%
+  summarise(
+    age = first(age),
+    political_orientation = first(political_orientation),
+    genre = first(genre),
+    .groups = 'drop')
+
+summary_data2
+count(summary_data2$genre)
+```
+
+## Distribution of reaction time
+
+#### Study 1
+
+```{r plot-rt1}
+fit_norm = fitdist(as.numeric(na.exclude(data$rt_net)), distr = "norm")
+#shapiro.test(data$rt_net)
+ad.test(data$rt_net)# Anderson Darling as the Shapiro Test has a sample size max
+fit_log = fitdist(as.numeric(log((na.exclude(data$rt_net)))), distr = "norm")
+
+plot(fit_norm)
+plot(fit_log)
+```
+
+#### Study 2
+
+```{r plot-rt2}
+fit_norm2 = fitdist(as.numeric(na.exclude(data2$rt_net)), distr = "norm")
+#shapiro.test(data2$rt_net)
+ad.test(data2$rt_net) # Anderson Darling as the Shapiro Test has a sample size max
+fit_log2 = fitdist(as.numeric(log((na.exclude(data2$rt_net)))), distr = "norm")
+
+plot(fit_norm2)
+plot(fit_log2)
+```
+
+# Analysis
+
+## Study 1
+
+### Reaction Time
+
+#### Full mixed-effect model
+
+```{r s1-rt-lmer, results = 'hide'}
+full = lmer(log(rt_net) ~ condition * newemo + (1|number_ID) + (1|item),
+           na.action = na.omit,
+           data = data)
+```
+
+Summary
+
+```{r s1-rt-lmer-show}
+tbl_regression(full,
+               label = list(condition ~ "Condition",
+                            newemo ~ "Emotion")) %>%
+  modify_column_unhide(column = std.error) %>%
+  modify_column_unhide(column = statistic) %>%
+  modify_header(label = "**Variable**") %>%
+  bold_p() %>%
+  modify_fmt_fun(statistic ~ style_sigfig) %>%
+  add_significance_stars(hide_ci = FALSE,
+                         hide_p = FALSE,
+                         pattern = "{p.value}{stars}") %>%
+  add_glance_source_note(label = list(sigma ~ "\U03C3"),
+                         include = c(AIC, sigma))
+```
+
+Anova & conditional and marginal coefficient of determination
+
+```{r s1-rt-lmer-info}
+Anova(full, type = 3, ddf = "Satterthwaite")
+round(r.squaredGLMM(full, method = "marginal"), 4)
+```
+
+- Main effect of <i>Emotion</i> $$\chi^2(5) =  120.998, p < .001$$
+- Interaction between <i>Condition</i> and <i>Emotion</i> $$\chi^2(5) = 23.82, p < .001$$
+
+Variance explained by the model:
+$$R^2_m = 0.98\% \text{ (fixed)}$$
+$$R^2_c = 43.93\% \text{ (fixed + random)}$$
+
+#### Pairwise comparisons & estimated marginal means
+
+```{r s1-rt-lmer-cont}
+emmeans(full, pairwise ~ newemo, lmer.df = "asymp", type = "response", adjust = "bonferroni")
+emmeans(full, pairwise ~ condition, lmer.df = "asymp", type = "response", adjust = "bonferroni")
+emmeans(full, pairwise ~ newemo|condition, lmer.df = "asymp", type = "response", adjust = "bonferroni")
+```
+
+#### Plot all interaction effects
+
+```{r s1-rt-lmer-plot}
+plotfull = ggpredict(full, terms = c("newemo", "condition"), ci_level = 0.95) %>%
+  plot() +
+  labs(x = "Emotion", y = "Reaction Time (ms)", colour = "Condition", title = "", element_text(size = 14)) +
+  scale_fill_Publication() +
+  scale_colour_Publication() +
+  theme_Publication()  +
+  scale_y_continuous(breaks = c(800, 850, 900, 950, 1000, 1050, 1100, 1150))
+
+plotfull
+```
+
+### Appropriateness
+
+#### Full generalized mixed-effect model
+
+```{r s1-rating-lmer, results = 'hide'}
+emo = glmer(score ~ newemo * condition + (1|number_ID) + (1|item),
+          data = data,
+          family = binomial,
+          na.action = na.omit,
+          control = glmerControl(optimizer = "bobyqa"))
+```
+
+Summary
+
+```{r s1-rating-lmer-show}
+tbl_regression(emo,
+               label = list(condition ~ "Condition",
+                            newemo ~ "Emotion")) %>%
+  modify_column_unhide(column = std.error) %>%
+  modify_column_unhide(column = statistic) %>%
+  modify_header(label = "**Variable**") %>%
+  bold_p() %>%
+  modify_fmt_fun(statistic ~ style_sigfig) %>%
+  add_significance_stars(hide_ci = FALSE,
+                         hide_p = FALSE,
+                         pattern = "{p.value}{stars}") %>%
+  add_glance_source_note(label = list(sigma ~ "\U03C3"),
+                         include = c(AIC, sigma))
+```
+
+Anova & conditional and marginal coefficient of determination
+
+```{r s1-rating-lmer-info}
+Anova(emo, type = 3, ddf = "Satterthwaite")
+round(r.squaredGLMM(emo, method = "marginal"), 4)
+```
+
+- Main effect of <i>Emotion</i> $$\chi^2(5) = 264.81, p < .001$$
+- Interaction between <i>Condition</i> and <i>Emotion</i> $$\chi^2(5) = 145.645, p < .001$$
+
+Variance explained by the model:
+$$R^2_m = 4.40\% \text{ (fixed)}$$
+$$R^2_c = 35.74\% \text{ (fixed + random)}$$
+
+#### Pairwise comparisons (estimated marginal means and pairwise comparisons)
+
+```{r s1-rating-lmer-cont}
+emmeans(emo, pairwise ~ newemo, lmer.df = "asymp", type = "response", adjust = "bonferroni")
+emmeans(emo, pairwise ~ condition, lmer.df = "asymp", type = "response", adjust = "bonferroni")
+emmeans(emo, pairwise ~ newemo|condition, lmer.df = "asymp", type = "response", adjust = "bonferroni")
+```
+
+#### Plot all interaction effects
+
+```{r s1-rating-lmer-plot}
+plotemo = ggpredict(emo, terms = c("newemo", "condition"), ci_level = 0.95) %>%
+  plot() +
+  labs(x = "Emotion", y = "Appropriate/Inappropriate Rating Likelihood", colour = "Condition", title = "", element_text(size = 14)) +
+  scale_fill_Publication() +
+  scale_colour_Publication() +
+  theme_Publication() +
+  scale_y_continuous(breaks = c(0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1))
+
+plotemo
+```
+
+### Exploratory Analyses
+
+#### Full mixed-effect model with condition
+
+```{r s1-exp1-lmer, results = 'hide'}
+class = lmer(log(rt_net) ~ condition * newclass * newemo + (1|number_ID) + (1|item),
+             na.action = na.omit,
+             data = data)
+```
+
+Summary
+
+```{r s1-exp1-lmer-show}
+tbl_regression(class,
+               label = list(condition ~ "Condition",
+                            newemo ~ "Emotion",
+                            newclass ~ "Class of Trangression")) %>%
+  modify_column_unhide(column = std.error) %>%
+  modify_column_unhide(column = statistic) %>%
+  modify_header(label = "**Variable**") %>%
+  bold_p() %>%
+  modify_fmt_fun(statistic ~ style_sigfig) %>%
+  add_significance_stars(hide_ci = FALSE,
+                         hide_p = FALSE,
+                         pattern = "{p.value}{stars}") %>%
+  add_glance_source_note(label = list(sigma ~ "\U03C3"),
+                         include = c(AIC, sigma))
+```
+
+Anova & conditional and marginal coefficient of determination
+
+```{r s1-exp1-lmer-info}
+Anova(class, type = 3, ddf = "Satterthwaite")
+round(r.squaredGLMM(class, method = "marginal"), 4)
+```
+- Main effect of <i>Emotion</i> $$\chi^2(5) = 11.8516, p = .037$$
+
+Variance explained by the model:
+$$R^2_m = 1.2\% \text{ (fixed)}$$
+$$R^2_c = 44.07\% \text{ (fixed + random)}$$
+
+Pairwise comparisons & estimated marginal means
+
+```{r s1-exp1-lmer-cont}
+emmeans(class, pairwise ~ newemo, lmer.df = "asymp", type = "response", adjust = "bonferroni")
+```
+
+Plot all interaction effects
+
+```{r s1-exp1-lmer-plot}
+plotclass = ggpredict(class, terms = c("newemo"), ci_level = 0.95) %>%
+  plot() +
+  labs(x = "Emotion", y = "Reaction Time (ms)", colour = "Emotion", title = "", element_text(size = 14)) +
+  scale_fill_Publication() +
+  scale_colour_Publication() +
+  theme_Publication()
+
+plotclass
+```
+
+#### Full mixed-effect model without condition
+
+```{r s1-exp2-lmer, results = 'hide'}
+class2 = lmer(log(rt_net) ~ newclass * newemo + (1|number_ID) + (1|item),
+              na.action = na.omit,
+              data = data)
+summary(class2)
+```
+
+Summary
+
+```{r s1-exp2-lmer-show}
+tbl_regression(class2,
+               label = list(newemo ~ "Emotion",
+                            newclass ~ "Class of Trangression")) %>%
+  modify_column_unhide(column = std.error) %>%
+  modify_column_unhide(column = statistic) %>%
+  modify_header(label = "**Variable**") %>%
+  bold_p() %>%
+  modify_fmt_fun(statistic ~ style_sigfig) %>%
+  add_significance_stars(hide_ci = FALSE,
+                         hide_p = FALSE,
+                         pattern = "{p.value}{stars}") %>%
+  add_glance_source_note(label = list(sigma ~ "\U03C3"),
+                         include = c(AIC, sigma))
+```
+
+Anova & conditional and marginal coefficient of determination
+
+```{r s1-exp2-lmer-info}
+Anova(class2, type = 3)
+round(r.squaredGLMM(class2, method = "marginal"), 4)
+```
+- Main effect of <i>Emotion</i> $$\chi^2(5) = 43.6176, p < .001$$
+- Interaction between <i>CLass</i> and <i>Emotion</i> $$\chi^2(20) = 43.6176, p < .001$$
+
+Variance explained by the model:
+$$R^2_m = 0.99\% \text{ (fixed)}$$
+$$R^2_c = 43.83\% \text{ (fixed + random)}$$
+
+#### Difference between the two models
+
+```{r s1-exp1-2-lmer-comp}
+anova(class, class2)
+lrtest(class2, class)
+```
+
+- No significant difference between the 2 (ANOVA)
+- Model with condition better than the one without: $$X^2(30) = 113.5, p < .001$$
+
+#### RT with Condition and Class (preregistered)
+
+```{r s1-exp3-rt-lmer}
+exprt1 = lmer(log(rt_net) ~ condition * newclass + (1|number_ID) + (1|item),
+           na.action = na.omit,
+           data = data)
+```
+
+Summary
+
+```{r s1-exp3-rt-lmer-show}
+tbl_regression(exprt1,
+               label = list(condition ~ "Condition",
+                            newclass ~ "Class of Trangression")) %>%
+  modify_column_unhide(column = std.error) %>%
+  modify_column_unhide(column = statistic) %>%
+  modify_header(label = "**Variable**") %>%
+  bold_p() %>%
+  modify_fmt_fun(statistic ~ style_sigfig) %>%
+  add_significance_stars(hide_ci = FALSE,
+                         hide_p = FALSE,
+                         pattern = "{p.value}{stars}") %>%
+  add_glance_source_note(label = list(sigma ~ "\U03C3"),
+                         include = c(AIC, sigma))
+```
+
+Anova & conditional and marginal coefficient of determination
+
+```{r s1-exp3-rt-lmer-info}
+Anova(exprt1, type = 3)
+round(r.squaredGLMM(exprt1, method = "marginal"), 4)
+```
+
+No significant effect
+
+Variance explained by the model:
+$$R^2_m = 0.14\% \text{ (fixed)}$$
+$$R^2_c = 43.00\% \text{ (fixed + random)}$$
+
+#### Appropriateness with Condition and Class (preregistered)
+
+```{r s1-exp3-rating-lmer}
+exphit1 = glmer(score ~ condition * newclass + (1|number_ID) + (1|item),
+          na.action = na.omit,
+          data = data,
+          family = binomial,
+          control = glmerControl(optimizer = "bobyqa"))
+```
+
+Summary
+
+```{r s1-exp3-rating-lmer-show}
+tbl_regression(exphit1,
+               label = list(condition ~ "Condition",
+                            newclass ~ "Class of Transgression")) %>%
+  modify_column_unhide(column = std.error) %>%
+  modify_column_unhide(column = statistic) %>%
+  modify_header(label = "**Variable**") %>%
+  bold_p() %>%
+  modify_fmt_fun(statistic ~ style_sigfig) %>%
+  add_significance_stars(hide_ci = FALSE,
+                         hide_p = FALSE,
+                         pattern = "{p.value}{stars}") %>%
+  add_glance_source_note(label = list(sigma ~ "\U03C3"),
+                         include = c(AIC, sigma))
+```
+
+Anova & conditional and marginal coefficient of determination
+
+```{r s1-exp3-rating-lmer-info}
+Anova(exphit1, type = 3)
+round(r.squaredGLMM(exphit1, method = "marginal"), 4)
+```
+
+- Main effect of <i>Class</i> $$\chi^2(4) = 20.194, p < .001$$
+
+Variance explained by the model:
+$$R^2_m = 0.69\% \text{ (fixed)}$$
+$$R^2_c = 30.83\% \text{ (fixed + random)}$$
+
+Pairwise comparisons (estimated marginal means and pairwise comparisons)
+
+```{r s1-exp3-rating-lmer-cont}
+emmeans(exphit1, pairwise ~ newclass, lmer.df = "asymp", type = "response", adjust = "bonferroni")
+```
+
+Plot all interaction effects
+
+```{r s1-exp3-rating-lmer-plot}
+plotexphit1 = ggpredict(exphit1, terms = c("newclass"), ci_level = 0.95) %>%
+  plot() +
+  labs(x = "Class of Transgression", y = "Appropriate/Inappropriate Rating Likelihood", colour = "Class of Transgression", title = "", element_text(size = 14)) +
+  scale_fill_Publication() +
+  scale_colour_Publication() +
+  theme_Publication() +
+  scale_y_continuous(breaks = c(0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1))
+
+plotexphit1
+```
+
+#### RT with Condition and Class + covariates (preregistered)
+
+Full mixed-effect model
+
+```{r s1-exp4-rt-lmer, results = 'hide'}
+fullcov = lmer(log(rt_net) ~ condition * newemo + age + newgender + political_orientation + (1|number_ID) + (1|item),
+           na.action = na.omit,
+           data = data)
+```
+
+Summary
+
+```{r s1-exp4-rt-lmer-show}
+tbl_regression(fullcov,
+               label = list(condition ~ "Condition",
+                            newemo ~ "Emotion",
+                            age ~ "Age",
+                            newgender ~ "Sex",
+                            political_orientation ~ "Political Orientation (1-Liberal to 7-Conservative)")) %>%
+  modify_column_unhide(column = std.error) %>%
+  modify_column_unhide(column = statistic) %>%
+  modify_header(label = "**Variable**") %>%
+  bold_p() %>%
+  modify_fmt_fun(statistic ~ style_sigfig) %>%
+  add_significance_stars(hide_ci = FALSE,
+                         hide_p = FALSE,
+                         pattern = "{p.value}{stars}") %>%
+  add_glance_source_note(label = list(sigma ~ "\U03C3"),
+                         include = c(AIC, sigma))
+```
+
+Anova & conditional and marginal coefficient of determination
+
+```{r s1-exp4-rt-lmer-info}
+Anova(fullcov, type = 3, ddf = "Satterthwaite")
+round(r.squaredGLMM(fullcov, method = "marginal"), 4)
+```
+
+- Main effect of <i>Emotion</i> $$\chi^2(5) = 117.204, p < .001$$
+- Interaction of <i>Emotion</i> and <i>Condition</i> $$\chi^2(5) = 23.854, p < .001$$
+
+Variance explained by the model:
+$$R^2_m = 2.77\% \text{ (fixed)}$$
+$$R^2_c = 45.24\% \text{ (fixed)}$$
+
+Pairwise comparisons (estimated marginal means and pairwise comparisons)
+
+```{r s1-exp4-rt-lmer-cont}
+emmeans(fullcov, pairwise ~ newemo, lmer.df = "asymp", type = "response", adjust = "bonferroni")
+emmeans(fullcov, pairwise ~ newemo|condition, lmer.df = "asymp", type = "response", adjust = "bonferroni")
+```
+
+Plot all interaction effects
+
+```{r s1-exp4-rt-lmer-plot}
+plotfullcov = ggpredict(fullcov, terms = c("newemo", "condition"), ci_level = 0.95) %>%
+  plot() +
+  labs(x = "Emotion", y = "Reaction Time (ms)", colour = "Condition", title = "", element_text(size = 14)) +
+  scale_fill_Publication() +
+  scale_colour_Publication() +
+  theme_Publication() +
+  scale_y_continuous(breaks = c(800, 850, 900, 950, 1000, 1050, 1100, 1150, 1200, 1250))
+
+plotfullcov
+```
+
+#### Appropriateness with Condition and Class + covariates (preregistered)
+
+Full mixed-effect model
+
+```{r s1-exp4-rating-lmer, results = 'hide'}
+emocov = glmer(score ~ newemo * condition + age + newgender + political_orientation + (1|number_ID) + (1|item),
+          data = data,
+          family = binomial,
+          na.action = na.omit,
+          control = glmerControl(optimizer = "bobyqa"))
+```
+
+Summary
+
+```{r s1-exp4-rating-lmer-show}
+tbl_regression(emocov,
+               label = list(condition ~ "Condition",
+                            newemo ~ "Emotion",
+                            age ~ "Age",
+                            newgender ~ "Sex",
+                            political_orientation ~ "Political Orientation (1-Liberal to 7-Conservative)")) %>%
+  modify_column_unhide(column = std.error) %>%
+  modify_column_unhide(column = statistic) %>%
+  modify_header(label = "**Variable**") %>%
+  bold_p() %>%
+  modify_fmt_fun(statistic ~ style_sigfig) %>%
+  add_significance_stars(hide_ci = FALSE,
+                         hide_p = FALSE,
+                         pattern = "{p.value}{stars}") %>%
+  add_glance_source_note(label = list(sigma ~ "\U03C3"),
+                         include = c(AIC, sigma))
+```
+
+Anova & conditional and marginal coefficient of determination
+
+```{r s1-exp4-rating-lmer-info}
+Anova(emocov, type = 3, ddf = "Satterthwaite")
+round(r.squaredGLMM(emocov, method = "marginal"), 4)
+```
+- Main effect of <i>Emotion</i> $$\chi^2(5) = 265.849, p < .001$$
+- Main effect of <i>Age</i> $$\chi^2(1) = 5.378, p = .020$$
+- Interaction of <i>Emotion</i> and <i>Condition</i> $$\chi^2(5) = 149.011, p < .001$$
+
+Variance explained by the model:
+$$R^2_m = 7.16\% \text{ (fixed)}$$
+$$R^2_c = 35.59\% \text{ (fixed + random)}$$
+
+Pairwise comparisons (estimated marginal means and pairwise comparisons)
+
+```{r s1-exp4-rating-lmer-cont}
+emmeans(emocov, pairwise ~ newemo, lmer.df = "asymp", type = "response", adjust = "bonferroni")
+emmeans(emocov, pairwise ~ condition, lmer.df = "asymp", type = "response", adjust = "bonferroni")
+emmeans(emocov, pairwise ~ newemo|condition, lmer.df = "asymp", type = "response", adjust = "bonferroni")
+```
+
+Plot all interaction effects
+
+```{r s1-exp4-rating-lmer-plot}
+plotemocov = ggpredict(emocov, terms = c("age", "condition", "newemo"), ci_level = 0.95) %>%
+  plot() +
+  labs(x = "Age", y = "Appropriate/Inappropriate Rating Likelihood", colour = "Condition", title = "", element_text(size = 14)) +
+  scale_fill_Publication() +
+  scale_colour_Publication() +
+  theme_Publication() +
+  scale_x_continuous(breaks = c(20, 30, 40, 50, 60, 70)) +
+  scale_y_continuous(breaks = c(0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1))
+
+plotemocov
+```
+
+## Study 2
+
+### Reaction Time
+
+#### Full mixed-effect model
+
+```{r s2-rt-lmer, results = 'hide'}
+full2 = lmer(log(rt_net) ~ condition * newemo * scenarios + (1|number_ID) + (1|item),
+             na.action = na.omit,
+             data = data2)
+```
+
+Summary
+
+```{r s2-rt-lmer-show}
+tbl_regression(full2,
+               label = list(condition ~ "Condition",
+                            newemo ~ "Emotion",
+                            scenarios ~ "Scenario")) %>%
+  modify_column_unhide(column = std.error) %>%
+  modify_column_unhide(column = statistic) %>%
+  modify_header(label = "**Variable**") %>%
+  bold_p() %>%
+  modify_fmt_fun(statistic ~ style_sigfig) %>%
+  add_significance_stars(hide_ci = FALSE,
+                         hide_p = FALSE,
+                         pattern = "{p.value}{stars}") %>%
+  add_glance_source_note(label = list(sigma ~ "\U03C3"),
+                         include = c(AIC, sigma))
+```
+
+Conditional and marginal coefficient of determination
+
+```{r s2-rt-lmer-info}
+Anova(full2, type = 3)
+round(r.squaredGLMM(full2, method = "marginal"), 4)
+```
+
+- Main effect of <i>Emotion</i> $$\chi^2(3) = 58.033, p < .001$$
+- Interaction of <i>Condition</i> and <i>Emotion</i> $$\chi^2(3) = 8.263, p = .041$$
+- Interaction of <i>Emotion</i> and <i>Scenario</i> $$\chi^2(3) = 13.005, p = .005$$
+
+Variance explained by the model:
+$$R^2_m = 1.55\% \text{ (fixed)}$$
+$$R^2_c = 33.90\% \text{ (fixed + random)}$$
+
+#### Pairwise comparisons & estimated marginal means
+
+```{r s2-rt-lmer-cont}
+emmeans(full2, pairwise ~ newemo, lmer.df = "asymp", type = "response", adjust = "bonferroni")
+emmeans(full2, pairwise ~ scenarios, lmer.df = "asymp", type = "response", adjust = "bonferroni")
+emmeans(full2, pairwise ~ newemo|condition, lmer.df = "asymp", type = "response", adjust = "bonferroni")
+emmeans(full2, pairwise ~ newemo|scenarios, lmer.df = "asymp", type = "response", adjust = "bonferroni")
+emmeans(full2, pairwise ~ scenarios|newemo, lmer.df = "asymp", type = "response", adjust = "bonferroni")
+```
+
+#### Plot all interaction effects
+
+```{r s2-rt-lmer-plot}
+plotfull2 = ggpredict(full2, terms = c("scenarios", "condition", "newemo"), ci_level = 0.95) %>%
+  plot() +
+  labs(x = "Scenario", y = "Reaction Time (ms)", colour = "Condition", title = "", element_text(size = 14)) +
+  scale_fill_Publication() +
+  scale_colour_Publication() +
+  theme_Publication() +
+  scale_y_continuous(breaks = c(800, 850, 900, 950, 1000, 1050, 1100, 1150, 1200, 1250, 1300, 1350, 1400))
+
+plotfull2
+```
+
+### Appropriateness
+
+#### Full generalized mixed-effect model
+
+```{r s2-rating-lmer, results = 'hide'}
+emo2 = glmer(score ~ scenarios * newemo * condition + (1|number_ID) + (1|item),
+             data = data2,
+             family = binomial,
+             control = glmerControl(optimizer = "bobyqa"))
+```
+
+Summary
+
+```{r s2-rating-lmer-show}
+tbl_regression(emo2,
+               label = list(condition ~ "Condition",
+                            newemo ~ "Emotion",
+                            scenarios ~ "Scenario")) %>%
+  modify_column_unhide(column = std.error) %>%
+  modify_column_unhide(column = statistic) %>%
+  modify_header(label = "**Variable**") %>%
+  bold_p() %>%
+  modify_fmt_fun(statistic ~ style_sigfig) %>%
+  add_significance_stars(hide_ci = FALSE,
+                         hide_p = FALSE,
+                         pattern = "{p.value}{stars}") %>%
+  add_glance_source_note(label = list(sigma ~ "\U03C3"),
+                         include = c(AIC, sigma))
+```
+
+Anova & conditional and marginal coefficient of determination
+
+```{r s2-rating-lmer-info}
+Anova(emo2, type = 3)
+round(r.squaredGLMM(emo2, method = "marginal"), 4)
+```
+
+- Main effect of <i>Emotion</i> $$\chi^2(3) = 28.663, p < .001$$
+- Interaction between <i>Emotion</i> and <i>Scenario</i> $$\chi^2(3) = 46.567, p < .001$$
+- Interaction between <i>Emotion</i> and <i>Condition</i> $$\chi^2(3) = 25.566, p < .001$$
+- Interaction between <i>Emotion</i>, <i>Condition</i> and <i>Scenario</i> $$\chi^2(3) = 10.004, p = .019$$
+
+Variance explained by the model:
+$$R^2_m = 1.86\% \text{ (fixed)}$$
+$$R^2_c = 22.64\% \text{ (fixed + random)}$$
+
+#### Pairwise comparisons (estimated marginal means and pairwise comparisons)
+
+```{r s2-rating-lmer-cont}
+emmeans(emo2, pairwise ~ newemo, lmer.df = "asymp", type = "response", adjust = "bonferroni")
+emmeans(emo2, pairwise ~ scenarios, lmer.df = "asymp", type = "response", adjust = "bonferroni")
+emmeans(emo2, pairwise ~ newemo|scenarios, lmer.df = "asymp", type = "response", adjust = "bonferroni")
+emmeans(emo2, pairwise ~ scenarios|newemo, lmer.df = "asymp", type = "response", adjust = "bonferroni")
+emmeans(emo2, pairwise ~ newemo|condition, lmer.df = "asymp", type = "response", adjust = "bonferroni")
+emmeans(emo2, pairwise ~ scenarios*condition*newemo, type = "response", adjust = "bonferroni")
+```
+
+#### Plot all interaction effects
+
+```{r s2-rating-lmer-plot}
+plotemo2 = ggpredict(emo2, terms = c("newemo", "condition", "scenarios"), ci_level = 0.95) %>%
+  plot() +
+  labs(x = "Emotion", y = "Appropriate/Inappropriate Rating Likelihood", colour = "Condition", title = "", element_text(size = 14)) +
+  scale_fill_Publication() +
+  scale_colour_Publication() +
+  theme_Publication() +
+  scale_y_continuous(breaks = c(0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1))
+
+plotemo2
+```
+
+### Exploratory Analyses
+
+Preparation
+
+```{r s2-exp1-prep}
+subdata = data2 %>%
+  filter(newclass %in% c("Harm", "Injustice", "Humiliation"))
+```
+
+#### RT with Condition and Class (preregistered)
+
+```{r s2-exp1-rt-lmer}
+exprt2 = lmer(log(rt_net) ~ condition * newclass + (1|number_ID) + (1|item),
+              na.action = na.omit,
+              data = subdata)
+```
+
+Summary
+
+```{r s2-exp1-rt-lmer-show}
+tbl_regression(exprt2,
+               label = list(condition ~ "Condition",
+                            newclass ~ "Class of Transgression")) %>%
+  modify_column_unhide(column = std.error) %>%
+  modify_column_unhide(column = statistic) %>%
+  modify_header(label = "**Variable**") %>%
+  bold_p() %>%
+  modify_fmt_fun(statistic ~ style_sigfig) %>%
+  add_significance_stars(hide_ci = FALSE,
+                         hide_p = FALSE,
+                         pattern = "{p.value}{stars}") %>%
+  add_glance_source_note(label = list(sigma ~ "\U03C3"),
+                         include = c(AIC, sigma))
+```
+
+Anova & conditional and marginal coefficient of determination
+
+```{r s2-exp1-rt-lmer-info}
+Anova(exprt2, type = 3)
+round(r.squaredGLMM(exprt2, method = "marginal"), 4)
+```
+
+- Main effect of <i>Class</i> $$\chi^2(2) = 11.381, p = .003$$
+
+Variance explained by the model:
+$$R^2_m = 1.15\% \text{ (fixed)}$$
+$$R^2_c = 34.58\% \text{ (fixed + random)}$$
+
+Pairwise comparisons & estimated marginal means
+
+```{r s2-exp1-rt-lmer-cont}
+emmeans(exprt2, pairwise ~ newclass, lmer.df = "asymp", type = "response", adjust = "bonferroni")
+```
+
+Plot all interaction effects
+
+```{r s2-exp1-rt-lmer-plot}
+plotexprt2 = ggpredict(exprt2, terms = c("newclass"), ci_level = 0.95) %>%
+  plot() +
+  labs(x = "Class of Trangression", y = "Reaction Time (ms)", title = "", element_text(size = 14)) +
+  scale_fill_Publication() +
+  scale_colour_Publication() +
+  theme_Publication()
+
+plotexprt2
+```
+
+#### Appropriateness with Condition and Class (preregistered)
+
+```{r s2-exp1-rating-lmer}
+exphit2 = glmer(score ~ condition * newclass + (1|number_ID) + (1|item),
+             data = subdata,
+             family = binomial,
+             control = glmerControl(optimizer = "bobyqa"))
+```
+
+Summary
+
+```{r s2-exp1-rating-lmer-show}
+tbl_regression(exphit2,
+               label = list(condition ~ "Condition",
+                            newclass ~ "Class of Transgression")) %>%
+  modify_column_unhide(column = std.error) %>%
+  modify_column_unhide(column = statistic) %>%
+  modify_header(label = "**Variable**") %>%
+  bold_p() %>%
+  modify_fmt_fun(statistic ~ style_sigfig) %>%
+  add_significance_stars(hide_ci = FALSE,
+                         hide_p = FALSE,
+                         pattern = "{p.value}{stars}") %>%
+  add_glance_source_note(label = list(sigma ~ "\U03C3"),
+                         include = c(AIC, sigma))
+```
+
+Anova & conditional and marginal coefficient of determination
+
+```{r s2-exp1-rating-lmer-info}
+Anova(exphit2, type = 3)
+round(r.squaredGLMM(exphit2, method = "marginal"), 4)
+```
+
+- Main effect of <i>Class</i> $$\chi^2(2) = 30.594, p < .001$$
+
+Variance explained by the model:
+$$R^2_m = 0.017\% \text{ (fixed)}$$
+$$R^2_c = 25.98\% \text{ (fixed + random)}$$
+
+Pairwise comparisons & estimated marginal means
+
+```{r s2-exp1-rating-lmer-cont}
+emmeans(exphit2, pairwise ~ newclass, lmer.df = "asymp", type = "response", adjust = "bonferroni")
+```
+
+Plot all interaction effects
+
+```{r s2-exp1-rating-lmer-plot}
+plotexphit2 = ggpredict(exphit2, terms = c("newclass"), ci_level = 0.95) %>%
+  plot() +
+  labs(x = "Class of Trangression", y = "Appropriate/Inappropriate Rating Likelihood", title = "", element_text(size = 14)) +
+  scale_fill_Publication() +
+  scale_colour_Publication() +
+  theme_Publication() +
+  scale_y_continuous(breaks = c(0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1))
+
+plotexphit2
+```
+
+#### RT with Condition, Emotion and Class + covariates (preregistered)
+
+Full mixed-effect model
+
+```{r s2-exp2-rt-lmer, results = 'hide'}
+full2cov = lmer(log(rt_net) ~ condition * newemo * scenarios + age + newgender + political_orientation + (1|number_ID) + (1|item),
+           na.action = na.omit,
+           data = data2)
+```
+
+Summary
+
+```{r s2-exp2-rt-lmer-show}
+tbl_regression(full2cov,
+               label = list(condition ~ "Condition",
+                            scenarios ~ "Scenarios",
+                            newemo ~ "Emotion",
+                            age ~ "Age",
+                            newgender ~ "Sex",
+                            political_orientation ~ "Political Orientation (1-Liberal to 7-Conservative)")) %>%
+  modify_column_unhide(column = std.error) %>%
+  modify_column_unhide(column = statistic) %>%
+  modify_header(label = "**Variable**") %>%
+  bold_p() %>%
+  modify_fmt_fun(statistic ~ style_sigfig) %>%
+  add_significance_stars(hide_ci = FALSE,
+                         hide_p = FALSE,
+                         pattern = "{p.value}{stars}") %>%
+  add_glance_source_note(label = list(sigma ~ "\U03C3"),
+                         include = c(AIC, sigma))
+```
+
+Anova & conditional and marginal coefficient of determination
+
+```{r s2-exp2-rt-lmer-info}
+Anova(full2cov, type = 3, ddf = "Satterthwaite")
+round(r.squaredGLMM(full2cov, method = "marginal"), 4)
+```
+
+- Main effect of <i>Emotion</i> $$\chi^2(3) = 58.017, p < .001$$
+- Main effect of <i>Age</i> $$\chi^2(1) = 8.22, p = .004$$
+- Interaction of <i>Emotion</i> and <i>Scenario</i> $$\chi^2(3) = 13.021, p = .0045 $$
+
+Variance explained by the model:
+$$R^2_m = 5.01\% \text{ (fixed)}$$
+$$R^2_c = 35.03\% \text{ (fixed + random)}$$
+Pairwise comparisons (estimated marginal means and pairwise comparisons)
+
+```{r s2-exp2-rt-lmer-cont}
+emmeans(full2cov, pairwise ~ newemo, lmer.df = "asymp", type = "response", adjust = "bonferroni")
+emmeans(full2cov, pairwise ~ scenarios, lmer.df = "asymp", type = "response", adjust = "bonferroni")
+```
+
+Plot all interaction effects
+
+```{r s2-exp2-rt-lmer-plot}
+plotfull2cov = ggpredict(full2cov, terms = c("age", "scenarios", "newemo"), ci_level = 0.95) %>%
+  plot() +
+  labs(x = "Age", y = "Reaction Time (ms)", colour = "Scenario", title = "", element_text(size = 14)) +
+  scale_fill_Publication() +
+  scale_colour_Publication() +
+  theme_Publication() +
+  scale_x_continuous(breaks = c(20, 30, 40, 50, 60, 70)) +
+  scale_y_continuous(breaks = c(800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700))
+plotfull2cov
+```
+
+#### Appropriateness with Condition, Emotion and Class + covariates (preregistered)
+
+Full mixed-effect model
+
+```{r s2-exp2-rating-lmer, results = 'hide'}
+emo2cov = glmer(score ~  condition * newemo * scenarios + age + newgender + political_orientation + (1|number_ID) + (1|item),
+          data = data2,
+          family = binomial,
+          na.action = na.omit,
+          control = glmerControl(optimizer = "bobyqa"))
+```
+
+
+Summary
+
+```{r s2-exp2-rating-lmer-show}
+tbl_regression(full2cov,
+               label = list(condition ~ "Condition",
+                            scenarios ~ "Scenarios",
+                            newemo ~ "Emotion",
+                            age ~ "Age",
+                            newgender ~ "Sex",
+                            political_orientation ~ "Political Orientation (1-Liberal to 7-Conservative)")) %>%
+  modify_column_unhide(column = std.error) %>%
+  modify_column_unhide(column = statistic) %>%
+  modify_header(label = "**Variable**") %>%
+  bold_p() %>%
+  modify_fmt_fun(statistic ~ style_sigfig) %>%
+  add_significance_stars(hide_ci = FALSE,
+                         hide_p = FALSE,
+                         pattern = "{p.value}{stars}") %>%
+  add_glance_source_note(label = list(sigma ~ "\U03C3"),
+                         include = c(AIC, sigma))
+```
+
+Anova & conditional and marginal coefficient of determination
+
+```{r s2-exp2-rating-lmer-info}
+Anova(emo2cov, type = 3, ddf = "Satterthwaite")
+round(r.squaredGLMM(emo2cov, method = "marginal"), 4)
+```
+
+- Main effect of <i>Emotion</i> $$\chi^2(3) = 28.558, p < .001$$
+- Interaction between <i>Emotion</i> and <i>Condition</i> $$\chi^2(3) = 25.494, p < .001$$
+- Interaction between <i>Emotion</i> and <i>Scenarios</i> $$\chi^2(3) = 46.448, p < .001$$
+- Interaction between <i>Emotion</i>, <i>Condition</i> and <i>Scenarios</i> $$\chi^2(3) = 9.942, p = .019$$
+
+Variance explained by the model:
+$$R^2_m = 2.88\% \text{ (fixed)}$$
+$$R^2_c = 22.59\% \text{ (fixed + random)}$$
+Pairwise comparisons (estimated marginal means and pairwise comparisons)
+
+```{r s2-exp2-rating-lmer-cont}
+emmeans(emo2cov, pairwise ~ newemo, lmer.df = "asymp", type = "response", adjust = "bonferroni")
+emmeans(emo2cov, pairwise ~ newemo|condition, lmer.df = "asymp", type = "response", adjust = "bonferroni")
+emmeans(emo2cov, pairwise ~ newemo|scenarios, lmer.df = "asymp", type = "response", adjust = "bonferroni")
+emmeans(emo2cov, pairwise ~ condition*newemo*scenarios, lmer.df = "asymp", type = "response", adjust = "bonferroni")
+```
+
+Plot all interaction effects
+
+```{r s2-exp2-rating-lmer-plot}
+plotemo2cov = ggpredict(emo2cov, terms = c("newemo", "condition", "scenarios"), ci_level = 0.95) %>%
+  plot() +
+  labs(x = "Emotion", y = "Appropriate/Inappropriate Rating Likelihood", colour = "Condition", title = "", element_text(size = 14)) +
+  scale_fill_Publication() +
+  scale_colour_Publication() +
+  theme_Publication() +
+  scale_y_continuous(breaks = c(0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1))
+
+plotemo2cov
+```
